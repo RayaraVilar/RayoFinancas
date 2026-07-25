@@ -15,6 +15,9 @@ def test_render_blueprint_wires_required_services_without_secrets() -> None:
     assert services["rayo-redis"]["type"] == "keyvalue"
     assert services["rayo-api"]["preDeployCommand"] == "alembic upgrade head"
     assert services["rayo-api"]["healthCheckPath"] == "/api/v1/ready"
+    assert services["rayo-api"]["autoDeployTrigger"] == "off"
+    assert services["rayo-bank-worker"]["autoDeployTrigger"] == "off"
+    assert services["rayo-web"]["autoDeployTrigger"] == "off"
 
     api_environment = {
         item["key"]: item for item in services["rayo-api"]["envVars"] if "key" in item

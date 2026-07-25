@@ -32,6 +32,25 @@ Frontend Root Directory: apps/web
 Worker Root Directory: apps/api
 ```
 
+### Testar sem gastar builds a cada commit
+
+Os serviços Git do Blueprint usam `autoDeployTrigger: off`. Assim, commits e
+pushes não iniciam builds automaticamente no Render.
+
+Fluxo recomendado:
+
+1. Desenvolva e valide localmente com Docker Compose.
+2. Faça commits e pushes normalmente.
+3. Quando uma versão estiver estável, abra o serviço no Render e use
+   **Manual Deploy > Deploy latest commit**.
+
+Se os serviços já existiam antes dessa configuração, confirme em cada um:
+**Settings > Build & Deploy > Auto-Deploy > Off**.
+
+Isso evita builds automáticos, mas não interrompe a cobrança de instâncias pagas
+que estejam em execução. Neste Blueprint, `rayo-api` e `rayo-bank-worker` usam o
+plano `starter`; frontend, PostgreSQL e Key Value usam planos gratuitos.
+
 ## 1. Domínios e servidor
 
 Crie registros DNS públicos apontando para o servidor:

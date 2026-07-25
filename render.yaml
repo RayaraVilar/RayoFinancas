@@ -12,6 +12,7 @@ services:
     plan: starter
     region: virginia
     rootDir: apps/api
+    autoDeployTrigger: "off"
     dockerfilePath: ./Dockerfile
     dockerContext: .
     dockerCommand: sh -c 'uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-10000} --no-access-log'
@@ -49,6 +50,12 @@ services:
         sync: false
       - key: RAYO_PLUGGY_WEBHOOK_SECRET
         generateValue: true
+      - key: RAYO_AI_PROVIDER
+        value: gemini
+      - key: RAYO_GEMINI_API_KEY
+        sync: false
+      - key: RAYO_GEMINI_MODEL
+        value: gemini-2.5-flash
       - key: RAYO_PAYMENT_INITIATION_ENABLED
         value: "false"
       - key: RAYO_PAYMENT_KILL_SWITCH
@@ -60,6 +67,7 @@ services:
     plan: starter
     region: virginia
     rootDir: apps/api
+    autoDeployTrigger: "off"
     dockerfilePath: ./Dockerfile
     dockerContext: .
     dockerCommand: dramatiq app.modules.banking.tasks --processes 1 --threads 4
@@ -118,6 +126,7 @@ services:
     plan: free
     region: virginia
     rootDir: apps/web
+    autoDeployTrigger: "off"
     dockerfilePath: ./Dockerfile
     dockerContext: .
     healthCheckPath: /

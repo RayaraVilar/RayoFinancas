@@ -30,7 +30,7 @@ async def get_assistant_capabilities(
     return AssistantCapabilityResponse(
         configured=settings.assistant_configured,
         status="READY" if settings.assistant_configured else "PENDING_CREDENTIAL",
-        model=settings.openai_model,
+        model=settings.assistant_model,
         tools=assistant_tools(),
         guarantees=[
             "Cálculos críticos vêm do backend determinístico, não do modelo.",

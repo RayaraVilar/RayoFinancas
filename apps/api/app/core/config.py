@@ -34,8 +34,11 @@ class Settings(BaseSettings):
     pluggy_client_secret: SecretStr | None = None
     pluggy_webhook_secret: SecretStr | None = None
     pluggy_api_url: str = "https://api.pluggy.ai"
+    ai_provider: Literal["openai", "gemini"] = "openai"
     openai_api_key: SecretStr | None = None
     openai_model: str = "gpt-5.6-sol"
+    gemini_api_key: SecretStr | None = None
+    gemini_model: str = "gemini-2.5-flash"
     redis_url: str = "redis://localhost:6379/0"
     payment_initiation_enabled: bool = False
     payment_kill_switch: bool = True
@@ -103,7 +106,15 @@ class Settings(BaseSettings):
 
     @property
     def assistant_configured(self) -> bool:
+        if self.ai_provider == "gemini":
+            return bool(self.gemini_api_key)
         return bool(self.openai_api_key)
+
+    @property
+    def assistant_model(self) -> str:
+        if self.ai_provider == "gemini":
+            return self.gemini_model
+        return self.openai_model
 
 
 @lru_cache
