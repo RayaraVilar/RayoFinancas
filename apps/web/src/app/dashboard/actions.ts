@@ -17,6 +17,64 @@ function decimalValue(value: FormDataEntryValue | null) {
     : rawValue;
 }
 
+export type AssistantActionState = {
+  answer: string | null;
+  error: string | null;
+};
+
+export async function askAssistantAction(
+  _previousState: AssistantActionState,
+  formData: FormData,
+): Promise<AssistantActionState> {
+  const profileId = String(formData.get("profile_id") ?? "");
+  const message = String(formData.get("message") ?? "").trim();
+  try {
+    const response = await serverApi<{ answer: string }>(
+      `/financial-profiles/${profileId}/assistant/messages`,
+      {
+        method: "POST",
+        body: JSON.stringify({ message }),
+      },
+    );
+    return { answer: response.answer, error: null };
+  } catch (error) {
+    return {
+      answer: null,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Não foi possível consultar o assistente agora.",
+    };
+  }
+}
+
+export async function saveGeminiCredentialAction(formData: FormData) {
+  const profileId = String(formData.get("profile_id") ?? "");
+  try {
+    await serverApi("/assistant/settings", {
+      method: "PUT",
+      body: JSON.stringify({ api_key: String(formData.get("api_key") ?? "") }),
+    });
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Não foi possível salvar a chave.";
+    redirect(dashboardUrl(profileId, "error", message));
+  }
+  redirect(
+    dashboardUrl(
+      profileId,
+      "success",
+      "Chave Gemini protegida e vinculada somente à sua conta.",
+    ),
+  );
+}
+
+export async function deleteGeminiCredentialAction(formData: FormData) {
+  const profileId = String(formData.get("profile_id") ?? "");
+  await serverApi("/assistant/settings", { method: "DELETE" });
+  redirect(dashboardUrl(profileId, "success", "Chave Gemini removida."));
+}
+
 export async function createTransactionAction(formData: FormData) {
   const profileId = String(formData.get("profile_id") ?? "");
   const categoryId = String(formData.get("category_id") ?? "");

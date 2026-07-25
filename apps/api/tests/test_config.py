@@ -6,6 +6,7 @@ from app.core.config import Settings
 
 def test_production_hides_interactive_api_docs() -> None:
     settings = Settings(
+        _env_file=None,
         environment="production",
         frontend_url="https://app.rayo.example",
         public_api_url="https://api.rayo.example",
@@ -17,14 +18,17 @@ def test_production_hides_interactive_api_docs() -> None:
 
 
 def test_development_exposes_interactive_api_docs() -> None:
-    settings = Settings(environment="development")
+    settings = Settings(_env_file=None, environment="development")
 
     assert settings.expose_api_docs is True
     assert settings.secure_cookies is False
 
 
 def test_render_postgres_url_uses_asyncpg_driver() -> None:
-    settings = Settings(database_url="postgresql://user:password@db.example/rayo")
+    settings = Settings(
+        _env_file=None,
+        database_url="postgresql://user:password@db.example/rayo",
+    )
 
     assert settings.database_url == "postgresql+asyncpg://user:password@db.example/rayo"
 
@@ -32,6 +36,7 @@ def test_render_postgres_url_uses_asyncpg_driver() -> None:
 def test_production_rejects_disabled_payment_kill_switch() -> None:
     with pytest.raises(ValidationError, match="KILL_SWITCH"):
         Settings(
+            _env_file=None,
             environment="production",
             frontend_url="https://app.rayo.example",
             public_api_url="https://api.rayo.example",

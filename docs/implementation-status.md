@@ -1,6 +1,6 @@
 # Estado de implementação
 
-Atualizado em 24/07/2026. Este documento separa código verificável de dependências
+Atualizado em 25/07/2026. Este documento separa código verificável de dependências
 externas e de validações operacionais que não podem ser simuladas.
 
 ## Entregue e validado localmente
@@ -13,14 +13,17 @@ externas e de validações operacionais que não podem ser simuladas.
 - metas, cenários, ações pendentes e confirmação idempotente;
 - dívidas Price/SAC, snowball e avalanche;
 - patrimônio, projeções, Health Score e insights versionados;
-- registry do assistente limitado a leitura/simulação, sem ferramenta de pagamento;
+- assistente Gemini utilizável, com contexto minimizado, registry limitado a
+  leitura/simulação e nenhuma ferramenta de pagamento;
+- chave Gemini pertencente a cada usuário, criptografada, redigida e removível;
+- conta de demonstração isolada com dados fictícios e integrações externas bloqueadas;
 - simulações imutáveis de pagamento e port de iniciação separado;
 - recebíveis, assinaturas, calendário de caixa, Inbox com revisão humana e
   preferências de notificação para Empresa;
 - exportação LGPD e exclusão com revogação de sessões/consentimentos;
 - rate limiting, CSP, headers de segurança, request IDs e logs seguros.
 
-As migrações `0001`–`0015`, lint, tipagem e a suíte PostgreSQL foram executados
+As migrações `0001`–`0016`, lint, tipagem e a suíte PostgreSQL foram executados
 localmente. O dashboard integra planejamento, futuro, metas, dívidas, insights,
 simulações revisáveis e formulários PJ.
 
@@ -28,12 +31,12 @@ simulações revisáveis e formulários PJ.
 
 - iniciação real de pagamento: feature flag falsa, kill switch ativo e sem ITP;
 - ingestão Gmail: `DESIGN_ONLY`, consentimento separado e revisão humana;
-- chat LLM: allowlist pronta, mas chamadas bloqueadas sem `RAYO_OPENAI_API_KEY`.
+- chat na conta de demonstração: não aceita chave nem envia dados a um LLM.
 
 ## Dependências externas para aceite integral
 
 1. Credenciais Pluggy sandbox para teste real do provider.
-2. Chave OpenAI e aprovação de privacidade/retenção para o adapter.
+2. Aprovação de privacidade/retenção do Gemini; cada usuário fornece sua própria chave.
 3. Provider/ITP, análise regulatória, threat model e pentest para pagamentos.
 4. Secret manager, staging, observabilidade e pipeline do ambiente escolhido.
 5. DPIA/LGPD, pentest independente, restauração, carga, WCAG e beta com usuários.

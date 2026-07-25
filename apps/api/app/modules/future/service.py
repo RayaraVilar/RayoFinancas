@@ -151,15 +151,16 @@ async def calculate_future(
         )
     )
     budget_rows = await budget_progress(db, user_id, profile_id, as_of)
-    budget_score = (
-        sum(
-            clamp(Decimal("100") - max(Decimal("0"), item.consumed_percent - 100))
-            for item in budget_rows
+    budget_score: Decimal | None = None
+    if budgets and budget_rows:
+        budget_total = sum(
+            (
+                clamp(Decimal("100") - max(Decimal("0"), item.consumed_percent - 100))
+                for item in budget_rows
+            ),
+            Decimal("0"),
         )
-        / len(budget_rows)
-        if budgets and budget_rows
-        else None
-    )
+        budget_score = budget_total / Decimal(len(budget_rows))
     if not debts:
         debt_score: Decimal | None = Decimal("100")
         debt_explanation = "Nenhuma dívida ativa cadastrada."
@@ -193,7 +194,7 @@ async def calculate_future(
             )
         )
         * 100
-        / len(goals)
+        / Decimal(len(goals))
         if goals
         else None
     )

@@ -18,9 +18,9 @@ async function getApiState(): Promise<ApiState> {
       throw new Error("API unavailable");
     }
 
-    return { online: true, label: "Fundação operacional" };
+    return { online: true, label: "Tudo pronto para começar" };
   } catch {
-    return { online: false, label: "API local desconectada" };
+    return { online: false, label: "Estamos voltando em instantes" };
   }
 }
 
@@ -40,7 +40,7 @@ function ArrowIcon() {
 
 function DashboardPreview() {
   return (
-    <div className="dashboard-shell relative mx-auto min-w-0 w-full max-w-[640px] overflow-hidden rounded-[28px] border border-white/70 bg-[#fbfcf7] p-4 shadow-[0_28px_90px_rgba(29,65,55,.18)] sm:p-6">
+    <div className="dashboard-shell relative mx-auto min-w-0 w-full max-w-[560px] overflow-hidden rounded-[26px] border border-white/70 bg-[#fbfcf7] p-4 shadow-[0_28px_90px_rgba(29,65,55,.18)] sm:p-5">
       <div className="mb-7 flex items-center justify-between">
         <div>
           <span className="text-[11px] font-semibold uppercase tracking-[.16em] text-[#84918a]">
@@ -153,13 +153,13 @@ function DashboardPreview() {
 
 function FinancialHeroVisual() {
   return (
-    <div className="relative px-3 pb-12 pt-10 sm:px-8 sm:pb-16 sm:pt-14">
+    <div className="relative px-3 pb-9 pt-7 sm:px-7 sm:pb-11 sm:pt-9">
       <div
         aria-label="Ilustração de um cartão, moedas e um extrato financeiro"
         className="pointer-events-none absolute inset-0 z-20"
         role="img"
       >
-        <div className="finance-float-card absolute right-0 top-0 w-[184px] rotate-[7deg] rounded-[22px] bg-[#173f35] p-5 text-white shadow-[0_20px_45px_rgba(23,63,53,.25)] sm:-right-3 sm:w-[224px]">
+        <div className="finance-float-card absolute right-0 top-0 w-[174px] rotate-[7deg] rounded-[20px] bg-[#173f35] p-4 text-white shadow-[0_20px_45px_rgba(23,63,53,.25)] sm:-right-1 sm:w-[194px]">
           <div className="flex items-start justify-between">
             <span className="grid size-9 place-items-center rounded-full bg-[#d9ff65] text-[11px] font-black text-[#173f35]">
               R$
@@ -169,17 +169,17 @@ function FinancialHeroVisual() {
               <rect x="15" width="21" height="28" rx="10.5" fill="#D9FF65" fillOpacity=".8" />
             </svg>
           </div>
-          <p className="mt-7 text-[10px] uppercase tracking-[.16em] text-white/55">
+          <p className="mt-5 text-[10px] uppercase tracking-[.16em] text-white/55">
             Saldo disponível
           </p>
           <p className="mt-1 text-xl font-semibold tracking-[-.04em]">R$ 4.280,60</p>
-          <div className="mt-5 flex items-center justify-between text-[9px] text-white/55">
+          <div className="mt-4 flex items-center justify-between text-[9px] text-white/55">
             <span>•••• 2840</span>
             <span>RAYO</span>
           </div>
         </div>
 
-        <div className="finance-float-receipt absolute -bottom-1 left-0 w-[164px] -rotate-[6deg] rounded-[18px] border border-[#dce5dd] bg-white p-4 shadow-[0_18px_45px_rgba(35,67,58,.14)] sm:-left-2 sm:w-[196px]">
+        <div className="finance-float-receipt absolute -bottom-1 left-0 w-[156px] -rotate-[6deg] rounded-[18px] border border-[#dce5dd] bg-white p-4 shadow-[0_18px_45px_rgba(35,67,58,.14)] sm:-left-1 sm:w-[176px]">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-bold uppercase tracking-[.14em] text-[#49665c]">
               Extrato
@@ -207,7 +207,7 @@ function FinancialHeroVisual() {
           </div>
         </div>
 
-        <div className="finance-float-coin absolute bottom-5 right-2 grid size-16 place-items-center rounded-full border-[7px] border-[#f4ffcb] bg-[#d9ff65] text-lg font-black text-[#315331] shadow-[0_14px_30px_rgba(91,120,45,.22)] sm:-right-2 sm:size-20">
+        <div className="finance-float-coin absolute bottom-5 right-2 grid size-14 place-items-center rounded-full border-[6px] border-[#f4ffcb] bg-[#d9ff65] text-base font-black text-[#315331] shadow-[0_14px_30px_rgba(91,120,45,.22)] sm:-right-1 sm:size-16">
           R$
         </div>
       </div>
@@ -229,7 +229,7 @@ export default async function Home() {
       <div className="hero-glow">
         <nav
           aria-label="Navegação principal"
-          className="hero-nav mx-auto flex w-full max-w-[1180px] items-center justify-between px-5 py-5 sm:px-8 lg:px-10"
+          className="hero-nav mx-auto flex w-full max-w-[1180px] items-center justify-between px-5 py-4 sm:px-8 lg:px-10"
         >
           <Brand />
           <div className="hidden items-center gap-8 text-sm font-medium text-[#536a62] md:flex">
@@ -251,9 +251,9 @@ export default async function Home() {
           </a>
         </nav>
 
-        <section className="hero-layout mx-auto grid min-w-0 w-full max-w-[1180px] items-center gap-14 px-5 pb-20 pt-16 sm:px-8 sm:pt-20 lg:grid-cols-[.9fr_1.1fr] lg:px-10 lg:pb-28 lg:pt-24">
+        <section className="hero-layout mx-auto grid min-w-0 w-full max-w-[1180px] items-center gap-10 px-5 pb-16 pt-12 sm:px-8 sm:pt-16 lg:min-h-[calc(100svh-82px)] lg:grid-cols-[.94fr_1.06fr] lg:px-10 lg:pb-10 lg:pt-5">
           <div className="relative z-10 min-w-0 w-full max-w-[600px]">
-            <div className="mb-7 inline-flex items-center gap-2 rounded-full border border-[#dbe7d5] bg-white/65 px-3 py-2 text-[11px] font-semibold text-[#557064] backdrop-blur">
+            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-[#dbe7d5] bg-white/65 px-3 py-2 text-[11px] font-semibold text-[#557064] backdrop-blur">
               <span
                 className={`size-2 rounded-full ${
                   apiState.online ? "bg-[#56ad7c]" : "bg-[#e6a54a]"
@@ -261,17 +261,17 @@ export default async function Home() {
               />
               {apiState.label}
             </div>
-            <h1 className="max-w-[580px] text-[clamp(3rem,7vw,5.8rem)] font-semibold leading-[.94] tracking-[-.07em] text-[#153d33]">
+            <h1 className="max-w-[540px] text-[clamp(2.8rem,13vw,4.2rem)] font-semibold leading-[.94] tracking-[-.065em] text-[#153d33] lg:text-[clamp(3.4rem,5vw,4.7rem)]">
               Seu dinheiro entra.
               <span className="mt-2 block font-serif font-normal italic text-[#5e7a6e]">
                 Mas para onde ele vai?
               </span>
             </h1>
-            <p className="mt-8 max-w-[510px] text-base leading-7 text-[#60736b] sm:text-lg sm:leading-8">
+            <p className="mt-5 max-w-[500px] text-base leading-7 text-[#60736b] sm:text-lg sm:leading-8">
               Conecte suas contas, entenda seu dinheiro e veja o impacto das
               suas decisões antes de tomá-las.
             </p>
-            <div className="mt-9 flex flex-col gap-3 sm:flex-row">
+            <div className="mt-6 flex flex-col gap-3 sm:flex-row">
               <a
                 className="inline-flex items-center justify-center gap-2 rounded-full bg-[#173f35] px-6 py-3.5 text-sm font-semibold text-white shadow-[0_14px_35px_rgba(23,63,53,.18)] transition hover:-translate-y-0.5 hover:bg-[#205448]"
                 href="/entrar"
@@ -286,7 +286,7 @@ export default async function Home() {
                 Ver demonstração
               </a>
             </div>
-            <div className="mt-9 flex flex-wrap gap-x-6 gap-y-2 text-xs text-[#75877f]">
+            <div className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-xs text-[#75877f]">
               <span>✓ Sem planilhas</span>
               <span>✓ Clareza sem julgamentos</span>
               <span>✓ Você decide cada mudança</span>
@@ -295,7 +295,7 @@ export default async function Home() {
 
           <div
             id="produto"
-            className="relative min-w-0 max-w-full overflow-hidden lg:translate-x-6 lg:overflow-visible"
+            className="relative min-w-0 max-w-full overflow-hidden lg:-my-8 lg:translate-x-4 lg:scale-[.9] lg:overflow-visible"
           >
             <div className="preview-orbit" />
             <FinancialHeroVisual />

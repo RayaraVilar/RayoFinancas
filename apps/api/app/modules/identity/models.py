@@ -5,7 +5,7 @@ from decimal import Decimal
 from enum import StrEnum
 from uuid import UUID, uuid4
 
-from sqlalchemy import DateTime, Enum, ForeignKey, Index, Numeric, String, Text, Uuid, text
+from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, Index, Numeric, String, Text, Uuid, text
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy.sql import func
 
@@ -55,6 +55,7 @@ class User(Base):
     locale: Mapped[str] = mapped_column(String(16), default="pt-BR")
     timezone: Mapped[str] = mapped_column(String(64), default="America/Sao_Paulo")
     base_currency: Mapped[str] = mapped_column(String(3), default="BRL")
+    is_demo: Mapped[bool] = mapped_column(Boolean, default=False)
     status: Mapped[UserStatus] = mapped_column(
         Enum(UserStatus, native_enum=False, create_constraint=True),
         default=UserStatus.ACTIVE,

@@ -35,6 +35,8 @@
 - credenciais e tokens Google nunca entram em logs ou tabelas de domínio.
 - access logs HTTP ficam desativados no container para não registrar códigos OAuth presentes no callback;
 - falhas OAuth são registradas somente por categoria segura, sem código, token ou payload do Google.
+- chaves Gemini pertencem ao usuário, ficam criptografadas e nunca são devolvidas;
+- a demonstração usa identidade isolada, dados fictícios e bloqueia integrações externas.
 
 ## Pagamentos
 

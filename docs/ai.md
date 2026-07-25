@@ -10,10 +10,15 @@ Usuário → Orquestrador → Tool Registry → Serviços de domínio → Postgr
 ```
 
 O modelo não recebe SQL, ORM, tokens bancários nem acesso genérico a dados.
+O Gemini recebe somente resumos necessários à pergunta após ação explícita do usuário.
+Conversas não são persistidas pela Rayo.
 
 ## Contexto
 
 Toda tool recebe `UserScope` e `FinancialContext` validados pelo backend. Perguntas na visão Pessoal usam apenas PF. Comparações entre perfis exigem intenção explícita e autorização.
+Cada usuário cadastra sua própria chave Gemini. Ela é criptografada no banco, nunca é
+devolvida pela API e é removida junto da solicitação de exclusão da conta. Não existe
+chave Gemini global no deploy público.
 
 ## Tools
 

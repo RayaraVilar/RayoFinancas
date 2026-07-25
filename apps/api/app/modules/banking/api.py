@@ -172,6 +172,11 @@ async def post_connect_token(
     db: DatabaseSession,
     scope: CsrfScope,
 ) -> ConnectTokenResponse:
+    if scope.user.is_demo:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="A conta de demonstração não permite conexões externas.",
+        )
     profile = await get_owned_profile(db, scope.user.id, profile_id)
     if profile is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Profile not found.")

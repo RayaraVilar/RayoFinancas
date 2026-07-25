@@ -51,8 +51,6 @@ services:
         generateValue: true
       - key: RAYO_AI_PROVIDER
         value: gemini
-      - key: RAYO_GEMINI_API_KEY
-        sync: false
       - key: RAYO_GEMINI_MODEL
         value: gemini-2.5-flash
       - key: RAYO_PAYMENT_INITIATION_ENABLED

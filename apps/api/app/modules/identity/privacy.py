@@ -3,9 +3,10 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from typing import Any
 
-from sqlalchemy import select, update
+from sqlalchemy import delete, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.modules.assistant.models import AssistantCredential
 from app.modules.banking.models import BankConnection, BankConnectionStatus
 from app.modules.business.models import (
     EmailIngestionConsent,
@@ -93,6 +94,21 @@ async def export_user_data(db: AsyncSession, user: User) -> dict[str, Any]:
         )
     )
     datasets[EmailIngestionConsent.__tablename__] = [_serialize_row(row) for row in email_consents]
+    assistant_credential = await db.scalar(
+        select(AssistantCredential).where(AssistantCredential.user_id == user.id)
+    )
+    datasets[AssistantCredential.__tablename__] = (
+        [
+            {
+                "provider": assistant_credential.provider,
+                "key_hint": assistant_credential.key_hint,
+                "created_at": assistant_credential.created_at,
+                "updated_at": assistant_credential.updated_at,
+            }
+        ]
+        if assistant_credential
+        else []
+    )
     return {
         "export_version": "2026-07.v1",
         "generated_at": datetime.now(UTC),
@@ -127,4 +143,5 @@ async def request_user_deletion(db: AsyncSession, user: User) -> datetime:
         .where(BankConnection.user_id == user.id)
         .values(status=BankConnectionStatus.REVOKED, revoked_at=requested_at)
     )
+    await db.execute(delete(AssistantCredential).where(AssistantCredential.user_id == user.id))
     return requested_at

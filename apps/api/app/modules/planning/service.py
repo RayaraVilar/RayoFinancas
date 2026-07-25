@@ -29,6 +29,7 @@ from app.modules.planning.models import (
 )
 from app.modules.planning.schemas import (
     BillCreate,
+    BillResponse,
     BillTransition,
     BudgetProgress,
     BudgetUpsert,
@@ -400,7 +401,7 @@ async def planning_summary(
             FreeBalanceComponent(code="BILLS", label="Compromissos confirmados", amount=-confirmed),
             FreeBalanceComponent(code="GOALS", label="Aporte planejado", amount=-goal),
         ],
-        bills=bills,
+        bills=[BillResponse.model_validate(item) for item in bills],
         budgets=budgets,
         plan=MonthlyPlanResponse.model_validate(plan) if plan else None,
         calculation_notes=[

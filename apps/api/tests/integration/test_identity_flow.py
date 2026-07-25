@@ -12,6 +12,7 @@ from sqlalchemy import delete, select
 from app.core.config import get_settings
 from app.core.database import get_session_factory
 from app.main import app
+from app.modules.assistant.models import AssistantCredential
 from app.modules.banking.models import (
     BankConnection,
     BankConnectionStatus,
@@ -205,6 +206,83 @@ async def authenticated_client(email: str) -> tuple[AsyncClient, User, str]:
     client.cookies.set(settings.session_cookie_name, credentials.token)
     client.cookies.set(settings.csrf_cookie_name, credentials.csrf_token)
     return client, user, credentials.csrf_token
+
+
+async def test_demo_session_is_isolated_and_seeded_with_fictitious_data() -> None:
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+    ) as client:
+        response = await client.post("/api/v1/auth/demo")
+        assert response.status_code == 201
+        profile_id = response.json()["profile_id"]
+
+        current_user = await client.get("/api/v1/auth/me")
+        assert current_user.status_code == 200
+        assert current_user.json()["is_demo"] is True
+        assert current_user.json()["email"].endswith("@demo.rayo.local")
+        demo_user_id = current_user.json()["id"]
+
+        transactions = await client.get(
+            "/api/v1/transactions?limit=20",
+            headers={"X-Financial-Profile-Id": profile_id},
+        )
+        assert transactions.status_code == 200
+        assert len(transactions.json()["items"]) >= 5
+
+        assistant_settings = await client.get("/api/v1/assistant/settings")
+        assert assistant_settings.status_code == 200
+        assert assistant_settings.json()["configured"] is False
+
+        settings = get_settings()
+        demo_csrf = client.cookies.get(settings.csrf_cookie_name)
+        assert demo_csrf is not None
+        logout_response = await client.post(
+            "/api/v1/auth/logout",
+            headers={"X-CSRF-Token": demo_csrf},
+        )
+        assert logout_response.status_code == 204
+        async with get_session_factory()() as db:
+            assert await db.get(User, demo_user_id) is None
+
+
+async def test_user_owned_gemini_key_is_encrypted_redacted_and_removable() -> None:
+    client, user, csrf_token = await authenticated_client("assistant@example.com")
+    headers = {"X-CSRF-Token": csrf_token}
+    raw_key = "test-user-owned-key-123456789"
+    async with client:
+        saved = await client.put(
+            "/api/v1/assistant/settings",
+            json={"api_key": raw_key},
+            headers=headers,
+        )
+        assert saved.status_code == 200
+        assert saved.json()["configured"] is True
+        assert saved.json()["key_hint"] == "••••6789"
+        assert raw_key not in saved.text
+
+        async with get_session_factory()() as db:
+            credential = await db.scalar(
+                select(AssistantCredential).where(AssistantCredential.user_id == user.id)
+            )
+            assert credential is not None
+            assert raw_key not in credential.encrypted_api_key
+
+        exported = await client.get("/api/v1/privacy/export")
+        assert exported.status_code == 200
+        credential_export = exported.json()["datasets"]["assistant_credentials"][0]
+        assert set(credential_export) == {
+            "provider",
+            "key_hint",
+            "created_at",
+            "updated_at",
+        }
+        assert raw_key not in exported.text
+
+        removed = await client.delete("/api/v1/assistant/settings", headers=headers)
+        assert removed.status_code == 204
+        settings = await client.get("/api/v1/assistant/settings")
+        assert settings.json()["configured"] is False
 
 
 async def test_privacy_export_and_deletion_revoke_access() -> None:

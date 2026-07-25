@@ -70,7 +70,7 @@ export function BankConnect({
       </Button>
       {!configured ? (
         <p className="mt-2 text-[11px] leading-4 text-[#8a7667]">
-          Configure as credenciais Pluggy no ambiente para habilitar o sandbox.
+          A conexão bancária está temporariamente indisponível.
         </p>
       ) : null}
       {error ? <p className="mt-2 text-xs text-[#9a4639]">{error}</p> : null}

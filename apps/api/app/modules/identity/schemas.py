@@ -14,6 +14,10 @@ class AuthStatusResponse(BaseModel):
     implementation_status: str
 
 
+class DemoSessionResponse(BaseModel):
+    profile_id: UUID
+
+
 class UserResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -21,6 +25,7 @@ class UserResponse(BaseModel):
     display_name: str
     email: str
     avatar_url: str | None
+    is_demo: bool
     onboarding_completed_at: datetime | None
 
 

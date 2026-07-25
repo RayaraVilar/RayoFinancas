@@ -1,11 +1,11 @@
-import { ArrowLeft, CheckCircle2, LockKeyhole } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Eye, LockKeyhole } from "lucide-react";
 import Link from "next/link";
 
 import { Brand } from "@/components/brand";
 import { buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { publicApiUrl, serverApi } from "@/lib/server-api";
+import { serverApi } from "@/lib/server-api";
 
 type AuthStatus = {
   google_configured: boolean;
@@ -20,26 +20,10 @@ export default async function LoginPage({
   searchParams: Promise<{ error?: string }>;
 }) {
   const { error } = await searchParams;
-  const oauthErrorMessages: Record<string, string> = {
-    code_exchange_failed:
-      "O Google autorizou o acesso, mas a troca segura do código falhou. Confira o Client Secret.",
-    id_token_verification_failed:
-      "A identidade devolvida pelo Google não pôde ser validada.",
-    wrong_audience:
-      "O ID token pertence a outro Client ID. Confira se Client ID e Client Secret são do mesmo cliente OAuth.",
-    token_used_too_early:
-      "O relógio do ambiente ainda não alcançou o horário de emissão do token.",
-    token_expired: "A tentativa de entrada expirou. Inicie o acesso novamente.",
-    wrong_issuer: "O emissor da identidade não corresponde ao Google.",
-    certificate_validation_failed:
-      "Não foi possível validar a assinatura do Google com o certificado publicado.",
-    nonce_verification_failed:
-      "A tentativa de entrada expirou ou não corresponde à sessão iniciada.",
-    email_not_verified: "Sua conta Google precisa ter um email verificado.",
-    missing_id_token: "O Google não devolveu a identidade necessária para concluir o acesso.",
-    incomplete_claims: "A conta Google não forneceu os dados mínimos de identificação.",
-    google: "Não foi possível entrar com o Google. Nenhuma sessão foi criada.",
-  };
+  const errorMessage =
+    error === "demo"
+      ? "Não foi possível abrir a demonstração agora. Tente novamente."
+      : "Não foi possível entrar com o Google. Tente novamente.";
   let authStatus: AuthStatus = {
     google_configured: false,
     implementation_status: "API_UNAVAILABLE",
@@ -77,7 +61,7 @@ export default async function LoginPage({
           </div>
         </div>
         <p className="relative text-xs text-white/45">
-          Python calcula. A IA apenas interpreta.
+          Seus dados permanecem sob seu controle.
         </p>
       </section>
 
@@ -111,15 +95,14 @@ export default async function LoginPage({
                 className="mt-6 rounded-xl border border-[#efd4cf] bg-[#fff4f1] p-3 text-sm text-[#94483d]"
                 role="alert"
               >
-                {oauthErrorMessages[error] ??
-                  "Não foi possível entrar com o Google. Nenhuma sessão foi criada."}
+                {errorMessage}
               </div>
             ) : null}
 
             {authStatus.google_configured ? (
-              <a
+              <Link
                 className={cn(buttonVariants({ size: "lg" }), "mt-7 w-full")}
-                href={`${publicApiUrl()}/api/v1/auth/google/start`}
+                href="/api/v1/auth/google/start"
               >
                 <svg aria-hidden="true" className="size-5" viewBox="0 0 24 24">
                   <path
@@ -142,7 +125,7 @@ export default async function LoginPage({
                   />
                 </svg>
                 Continuar com Google
-              </a>
+              </Link>
             ) : (
               <div className="mt-7">
                 <button
@@ -151,14 +134,33 @@ export default async function LoginPage({
                 >
                   Continuar com Google
                 </button>
-                <div className="mt-4 break-words rounded-xl bg-[#f5f7f2] p-4 text-xs leading-5 text-[#66776f]">
-                  <strong className="text-[#365248]">Pendente de credencial.</strong>{" "}
-                  O fluxo está implementado, mas precisa de{" "}
-                  <code className="break-all">RAYO_GOOGLE_CLIENT_ID</code> e{" "}
-                  <code className="break-all">RAYO_GOOGLE_CLIENT_SECRET</code>.
+                <div className="mt-4 rounded-xl bg-[#f5f7f2] p-4 text-xs leading-5 text-[#66776f]">
+                  O acesso com Google está temporariamente indisponível.
                 </div>
               </div>
             )}
+
+            <div className="my-5 flex items-center gap-3 text-[11px] uppercase tracking-[.14em] text-[#96a29c]">
+              <span className="h-px flex-1 bg-[#dfe5dd]" />
+              ou
+              <span className="h-px flex-1 bg-[#dfe5dd]" />
+            </div>
+
+            <form action="/api/v1/auth/demo" method="post">
+              <button
+                className={cn(
+                  buttonVariants({ size: "lg", variant: "outline" }),
+                  "w-full",
+                )}
+                type="submit"
+              >
+                <Eye className="size-4" />
+                Explorar demonstração
+              </button>
+            </form>
+            <p className="mt-3 text-center text-xs leading-5 text-[#7a8982]">
+              Veja a Rayo com informações totalmente fictícias, sem conectar contas.
+            </p>
 
             <p className="mt-7 text-center text-[11px] leading-5 text-[#819088]">
               Ao continuar, você confirma que leu os Termos e a Política de

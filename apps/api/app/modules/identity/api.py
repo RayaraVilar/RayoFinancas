@@ -13,6 +13,7 @@ from pydantic import BaseModel
 from sqlalchemy import select
 
 from app.core.config import Settings, get_settings
+from app.modules.identity.demo import create_demo_user
 from app.modules.identity.dependencies import (
     CsrfScope,
     CurrentScope,
@@ -31,6 +32,7 @@ from app.modules.identity.schemas import (
     AuthStatusResponse,
     ConsentCreate,
     ConsentResponse,
+    DemoSessionResponse,
     FinancialProfileCreate,
     FinancialProfileResponse,
     OnboardingStateResponse,
@@ -120,6 +122,36 @@ async def auth_status(
             else "CONFIGURED"
         ),
     )
+
+
+@router.post("/auth/demo", response_model=DemoSessionResponse, tags=["auth"])
+async def start_demo_session(
+    request: Request,
+    db: DatabaseSession,
+    settings: Annotated[Settings, Depends(get_settings)],
+) -> JSONResponse:
+    user, profile = await create_demo_user(db)
+    credentials = await create_session(db, user.id, settings)
+    await record_audit_event(
+        db,
+        user_id=user.id,
+        action="auth.demo_started",
+        target_type="session",
+        target_id=credentials.session.id,
+        correlation_id=request.headers.get("x-request-id"),
+    )
+    await db.commit()
+    response = JSONResponse(
+        content=jsonable_encoder(DemoSessionResponse(profile_id=profile.id)),
+        status_code=status.HTTP_201_CREATED,
+    )
+    set_session_cookies(
+        response,
+        settings=settings,
+        token=credentials.token,
+        csrf_token=credentials.csrf_token,
+    )
+    return response
 
 
 @router.get("/auth/google/start", tags=["auth"])
@@ -259,6 +291,7 @@ async def logout(
     scope: CsrfScope,
     settings: Annotated[Settings, Depends(get_settings)],
 ) -> Response:
+    is_demo = scope.user.is_demo
     scope.session.revoked_at = datetime.now(UTC)
     await record_audit_event(
         db,
@@ -268,6 +301,8 @@ async def logout(
         target_id=scope.session.id,
         correlation_id=request.headers.get("x-request-id"),
     )
+    if is_demo:
+        await db.delete(scope.user)
     await db.commit()
     response = Response(status_code=status.HTTP_204_NO_CONTENT)
     clear_session_cookies(response, settings)

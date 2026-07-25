@@ -25,6 +25,7 @@ import { redirect } from "next/navigation";
 
 import { Brand } from "@/components/brand";
 import { BankConnect } from "@/components/bank-connect";
+import { AssistantPanel } from "@/components/assistant-panel";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -55,6 +56,7 @@ import {
 type User = {
   display_name: string;
   email: string;
+  is_demo: boolean;
   onboarding_completed_at: string | null;
 };
 
@@ -276,6 +278,14 @@ type BusinessCalendar = {
   }[];
 };
 
+type AssistantSettings = {
+  configured: boolean;
+  provider: "gemini";
+  model: string;
+  key_hint: string | null;
+  storage: "ENCRYPTED_PER_USER";
+};
+
 function money(value: string) {
   return new Intl.NumberFormat("pt-BR", {
     style: "currency",
@@ -367,6 +377,7 @@ export default async function DashboardPage({
   let future: Future | null = null;
   let insights: Insight[] = [];
   let businessCalendar: BusinessCalendar | null = null;
+  let assistantSettings: AssistantSettings | null = null;
   try {
     [user, profiles, context] = await Promise.all([
       serverApi<User>("/auth/me"),
@@ -402,6 +413,7 @@ export default async function DashboardPage({
         future,
         insights,
         businessCalendar,
+        assistantSettings,
       ] = await Promise.all([
         serverApi<Account[]>(`/financial-profiles/${profile}/accounts`),
         serverApi<Category[]>(`/financial-profiles/${profile}/categories`),
@@ -424,6 +436,7 @@ export default async function DashboardPage({
               `/financial-profiles/${profile}/business-calendar`,
             )
           : Promise.resolve(null),
+        serverApi<AssistantSettings>("/assistant/settings"),
       ]);
     }
   } catch (error) {
@@ -443,7 +456,9 @@ export default async function DashboardPage({
           <div className="flex items-center gap-4">
             <div className="hidden text-right sm:block">
               <p className="text-sm font-semibold">{user.display_name}</p>
-              <p className="text-xs text-[#7f8e87]">{user.email}</p>
+              <p className="text-xs text-[#7f8e87]">
+                {user.is_demo ? "Demonstração com dados fictícios" : user.email}
+              </p>
             </div>
             <form action={logoutAction}>
               <Button size="sm" type="submit" variant="ghost">
@@ -825,6 +840,16 @@ export default async function DashboardPage({
                 executada por esta tela ou pelo assistente.
               </div>
             </Card>
+
+            {assistantSettings ? (
+              <AssistantPanel
+                configured={assistantSettings.configured}
+                isDemo={user.is_demo}
+                keyHint={assistantSettings.key_hint}
+                model={assistantSettings.model}
+                profileId={profile}
+              />
+            ) : null}
 
             {businessCalendar ? (
               <Card className="p-5 sm:p-6 lg:col-span-3">
@@ -1674,10 +1699,16 @@ export default async function DashboardPage({
                   </p>
                 </div>
               </div>
-              <BankConnect
-                configured={bankingStatus.configured}
-                profileId={profile}
-              />
+              {user.is_demo ? (
+                <span className="rounded-full bg-[#eef4e8] px-4 py-2 text-xs font-semibold text-[#557044]">
+                  Desativado na demonstração
+                </span>
+              ) : (
+                <BankConnect
+                  configured={bankingStatus.configured}
+                  profileId={profile}
+                />
+              )}
             </div>
             {bankConnections.length ? (
               <div className="mt-5 grid gap-3 border-t border-[#e5ebe6] pt-5 sm:grid-cols-2">

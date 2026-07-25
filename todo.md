@@ -1,12 +1,13 @@
 # Rayo Finanças — Backlog incremental
 
-> Atualizado em: 24/07/2026  
+> Atualizado em: 25/07/2026
 > Regra: marcar como concluído somente após implementação, testes e documentação correspondentes.  
-> Estado atual: etapas 1–10, simulação de pagamentos e núcleo PJ implementados e
-> validados localmente. Itens que dependem de provider, revisão regulatória,
-> pentest, staging ou usuários reais permanecem abertos. A matriz verificável está
-> em `docs/implementation-status.md`; os checkboxes abaixo preservam a decomposição
-> original e devem ser lidos junto dos bloqueios externos.
+> Estado atual: engenharia local das etapas 4–11, 13 e núcleo da etapa 15
+> implementada. A etapa 12 conserva gates operacionais externos e a etapa 14
+> permanece deliberadamente desativada até provider/ITP e aprovação formal.
+> A evidência requisito a requisito está em `docs/roadmap-verification.md` e
+> `docs/implementation-status.md`; os checkboxes abaixo preservam a decomposição
+> original e não substituem a matriz verificável.
 
 ## Legenda
 

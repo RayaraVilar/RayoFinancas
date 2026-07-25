@@ -11,13 +11,17 @@ Render, escolha **New → Blueprint** e conecte este repositório. Preencha:
 ```text
 RAYO_FRONTEND_URL=https://rayo-web.onrender.com
 RAYO_PUBLIC_API_URL=https://rayo-api.onrender.com
-RAYO_GOOGLE_REDIRECT_URI=https://rayo-api.onrender.com/api/v1/auth/google/callback
+RAYO_GOOGLE_REDIRECT_URI=https://rayo-web.onrender.com/api/v1/auth/google/callback
 INTERNAL_API_URL=https://rayo-api.onrender.com
 PUBLIC_API_URL=https://rayo-api.onrender.com
 ```
 
 Além das credenciais Google e Pluggy solicitadas. Se o Render acrescentar um sufixo
 ao hostname, use exatamente a URL exibida no painel.
+
+Não configure `RAYO_GEMINI_API_KEY` no Render. Cada usuário cadastra sua própria
+chave no dashboard; o servidor mantém apenas o modelo `RAYO_GEMINI_MODEL` e o
+ciphertext protegido por `RAYO_SECRET_KEY`.
 
 O worker usa plano `starter`, porque background workers não aceitam plano gratuito.
 Revise custos antes de aplicar o Blueprint. API e worker ficam na mesma região do
@@ -56,8 +60,8 @@ plano `starter`; frontend, PostgreSQL e Key Value usam planos gratuitos.
 Crie registros DNS públicos apontando para o servidor:
 
 ```text
-app.seudominio.com  -> frontend
-api.seudominio.com  -> API, Google callback e webhook Pluggy
+app.seudominio.com  -> frontend e callback Google
+api.seudominio.com  -> API e webhook Pluggy
 ```
 
 Libere as portas 80 e 443. O Caddy obtém e renova TLS automaticamente.
@@ -73,6 +77,8 @@ chmod 600 .env.production
 
 Troque todos os valores de exemplo. `RAYO_DATABASE_URL` deve usar a mesma senha de
 `POSTGRES_PASSWORD`. Mantenha iniciação de pagamentos falsa e o kill switch verdadeiro.
+Não altere `RAYO_SECRET_KEY` depois que usuários cadastrarem chaves Gemini sem um
+plano de rotação, pois ela também protege essas credenciais.
 
 ## 3. Subida
 
@@ -96,7 +102,7 @@ curl -fsS https://app.seudominio.com/
 No cliente OAuth Web, adicione exatamente:
 
 ```text
-https://api.seudominio.com/api/v1/auth/google/callback
+https://app.seudominio.com/api/v1/auth/google/callback
 ```
 
 Mantenha o callback localhost se ainda usar desenvolvimento local. Configure a
