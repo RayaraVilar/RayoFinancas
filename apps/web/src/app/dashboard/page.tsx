@@ -687,8 +687,12 @@ export default async function DashboardPage({
               <p className="text-xs font-bold uppercase tracking-[.14em] text-[#79905d]">
                 Metas e dívidas
               </p>
-              <div className="mt-4 space-y-3">
-                {goals.slice(0, 2).map((goal) => (
+              <p className="mt-1 text-[11px] text-[#7c8b84]">
+                {goals.length} {goals.length === 1 ? "meta" : "metas"} · {debts.length}{" "}
+                {debts.length === 1 ? "dívida" : "dívidas"}
+              </p>
+              <div className="mt-4 max-h-80 space-y-3 overflow-y-auto pr-1">
+                {goals.map((goal) => (
                   <div className="rounded-2xl bg-[#f4f7f2] p-3" key={goal.id}>
                     <div className="flex justify-between gap-3 text-xs">
                       <span className="font-semibold">{goal.name}</span>
@@ -702,7 +706,7 @@ export default async function DashboardPage({
                     </div>
                   </div>
                 ))}
-                {debts.slice(0, 2).map((debt) => (
+                {debts.map((debt) => (
                   <div className="flex justify-between gap-3 text-xs" key={debt.id}>
                     <span className="truncate text-[#66766f]">{debt.name}</span>
                     <span className="shrink-0 font-semibold">
