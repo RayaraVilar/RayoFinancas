@@ -44,6 +44,7 @@ services:
       RAYO_DATABASE_URL: postgresql+asyncpg://rayo:local-development-only@db:5432/rayo
       RAYO_SECRET_KEY: local-development-secret-change-before-shared-use-2026
       RAYO_FRONTEND_URL: http://localhost:3000
+      RAYO_PUBLIC_API_URL: http://localhost:8000
       RAYO_GOOGLE_REDIRECT_URI: http://localhost:8000/api/v1/auth/google/callback
       RAYO_GOOGLE_CLIENT_ID: ${RAYO_GOOGLE_CLIENT_ID:-}
       RAYO_GOOGLE_CLIENT_SECRET: ${RAYO_GOOGLE_CLIENT_SECRET:-}

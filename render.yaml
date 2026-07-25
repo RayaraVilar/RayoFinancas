@@ -1,0 +1,137 @@
+services:
+  - type: keyvalue
+    name: rayo-redis
+    plan: free
+    region: virginia
+    ipAllowList: []
+    maxmemoryPolicy: noeviction
+
+  - type: web
+    name: rayo-api
+    runtime: docker
+    plan: starter
+    region: virginia
+    rootDir: apps/api
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    dockerCommand: sh -c 'uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-10000} --no-access-log'
+    preDeployCommand: alembic upgrade head
+    healthCheckPath: /api/v1/ready
+    envVars:
+      - key: RAYO_ENVIRONMENT
+        value: production
+      - key: RAYO_DATABASE_URL
+        fromDatabase:
+          name: rayo-db
+          property: connectionString
+      - key: RAYO_REDIS_URL
+        fromService:
+          type: keyvalue
+          name: rayo-redis
+          property: connectionString
+      - key: RAYO_SECRET_KEY
+        generateValue: true
+      - key: RAYO_FRONTEND_URL
+        sync: false
+      - key: RAYO_PUBLIC_API_URL
+        sync: false
+      - key: RAYO_GOOGLE_CLIENT_ID
+        sync: false
+      - key: RAYO_GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: RAYO_GOOGLE_REDIRECT_URI
+        sync: false
+      - key: RAYO_PLUGGY_ENABLED
+        value: "true"
+      - key: RAYO_PLUGGY_CLIENT_ID
+        sync: false
+      - key: RAYO_PLUGGY_CLIENT_SECRET
+        sync: false
+      - key: RAYO_PLUGGY_WEBHOOK_SECRET
+        generateValue: true
+      - key: RAYO_PAYMENT_INITIATION_ENABLED
+        value: "false"
+      - key: RAYO_PAYMENT_KILL_SWITCH
+        value: "true"
+
+  - type: worker
+    name: rayo-bank-worker
+    runtime: docker
+    plan: starter
+    region: virginia
+    rootDir: apps/api
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    dockerCommand: dramatiq app.modules.banking.tasks --processes 1 --threads 4
+    envVars:
+      - key: RAYO_ENVIRONMENT
+        value: production
+      - key: RAYO_DATABASE_URL
+        fromDatabase:
+          name: rayo-db
+          property: connectionString
+      - key: RAYO_REDIS_URL
+        fromService:
+          type: keyvalue
+          name: rayo-redis
+          property: connectionString
+      - key: RAYO_SECRET_KEY
+        fromService:
+          type: web
+          name: rayo-api
+          envVarKey: RAYO_SECRET_KEY
+      - key: RAYO_FRONTEND_URL
+        fromService:
+          type: web
+          name: rayo-api
+          envVarKey: RAYO_FRONTEND_URL
+      - key: RAYO_PUBLIC_API_URL
+        fromService:
+          type: web
+          name: rayo-api
+          envVarKey: RAYO_PUBLIC_API_URL
+      - key: RAYO_PLUGGY_ENABLED
+        value: "true"
+      - key: RAYO_PLUGGY_CLIENT_ID
+        fromService:
+          type: web
+          name: rayo-api
+          envVarKey: RAYO_PLUGGY_CLIENT_ID
+      - key: RAYO_PLUGGY_CLIENT_SECRET
+        fromService:
+          type: web
+          name: rayo-api
+          envVarKey: RAYO_PLUGGY_CLIENT_SECRET
+      - key: RAYO_PLUGGY_WEBHOOK_SECRET
+        fromService:
+          type: web
+          name: rayo-api
+          envVarKey: RAYO_PLUGGY_WEBHOOK_SECRET
+      - key: RAYO_PAYMENT_INITIATION_ENABLED
+        value: "false"
+      - key: RAYO_PAYMENT_KILL_SWITCH
+        value: "true"
+
+  - type: web
+    name: rayo-web
+    runtime: docker
+    plan: free
+    region: virginia
+    rootDir: apps/web
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /
+    envVars:
+      - key: INTERNAL_API_URL
+        sync: false
+      - key: PUBLIC_API_URL
+        sync: false
+
+databases:
+  - name: rayo-db
+    plan: free
+    region: virginia
+    postgresMajorVersion: "17"
+    databaseName: rayo
+    user: rayo
+    ipAllowList: []

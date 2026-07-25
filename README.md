@@ -115,3 +115,6 @@ O teste de integração com PostgreSQL é ativado com `RAYO_RUN_INTEGRATION=1`.
 - [Mapa de dados e LGPD](./docs/data-map-lgpd.md)
 - [Threat model](./docs/threat-model.md)
 - [Operação e runbooks](./docs/operations.md)
+- [Deploy, Google OAuth e webhook Pluggy](./docs/deployment.md)
+
+Para Render, use o Blueprint [`render.yaml`](./render.yaml).
