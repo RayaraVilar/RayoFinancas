@@ -1,4 +1,6 @@
-import { cookies } from "next/headers";
+import { cookies, headers as requestHeaders } from "next/headers";
+
+import { forwardClientAddress } from "@/lib/proxy-headers";
 
 export class ApiError extends Error {
   constructor(
@@ -22,12 +24,14 @@ export async function serverApi<T>(
   init: RequestInit = {},
 ): Promise<T> {
   const cookieStore = await cookies();
+  const incomingHeaders = await requestHeaders();
   const cookieHeader = cookieStore
     .getAll()
     .map(({ name, value }) => `${name}=${value}`)
     .join("; ");
   const headers = new Headers(init.headers);
   headers.set("Accept", "application/json");
+  forwardClientAddress(headers, incomingHeaders);
   if (cookieHeader) {
     headers.set("Cookie", cookieHeader);
   }

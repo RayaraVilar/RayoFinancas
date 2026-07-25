@@ -21,7 +21,9 @@ export default async function LoginPage({
 }) {
   const { error } = await searchParams;
   const errorMessage =
-    error === "demo"
+    error === "demo-limit"
+      ? "Muitas demonstrações foram abertas em sequência. Aguarde um minuto e tente novamente."
+      : error === "demo"
       ? "Não foi possível abrir a demonstração agora. Tente novamente."
       : "Não foi possível entrar com o Google. Tente novamente.";
   let authStatus: AuthStatus = {

@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 
+import { forwardClientAddress } from "@/lib/proxy-headers";
+
 type HeadersWithSetCookie = Headers & {
   getSetCookie?: () => string[];
 };
@@ -22,11 +24,16 @@ export async function POST(request: Request) {
   try {
     const upstream = await fetch(`${internalApiUrl()}/api/v1/auth/demo`, {
       method: "POST",
-      headers: { Accept: "application/json" },
+      headers: (() => {
+        const headers = new Headers({ Accept: "application/json" });
+        forwardClientAddress(headers, request.headers);
+        return headers;
+      })(),
       cache: "no-store",
     });
     if (!upstream.ok) {
-      return NextResponse.redirect(new URL("/entrar?error=demo", origin), 303);
+      const error = upstream.status === 429 ? "demo-limit" : "demo";
+      return NextResponse.redirect(new URL(`/entrar?error=${error}`, origin), 303);
     }
     const payload = (await upstream.json()) as { profile_id: string };
     const response = NextResponse.redirect(

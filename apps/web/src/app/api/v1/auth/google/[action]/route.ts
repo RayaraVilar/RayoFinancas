@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 
+import { forwardClientAddress } from "@/lib/proxy-headers";
+
 type RouteContext = {
   params: Promise<{ action: string }>;
 };
@@ -34,6 +36,7 @@ export async function GET(request: Request, context: RouteContext) {
   const upstreamHeaders = new Headers({
     Accept: "text/html,application/xhtml+xml",
   });
+  forwardClientAddress(upstreamHeaders, request.headers);
   const cookie = request.headers.get("cookie");
   if (cookie) upstreamHeaders.set("Cookie", cookie);
   const requestId = request.headers.get("x-request-id");
