@@ -26,6 +26,7 @@ from app.modules.goals.schemas import (
     GoalResponse,
     GoalScenarioRequest,
     GoalScenarioResponse,
+    GoalUpdate,
     PendingActionResponse,
     ScenarioResult,
 )
@@ -33,6 +34,10 @@ from app.modules.identity.models import FinancialProfile, User
 from app.modules.identity.service import record_audit_event
 
 CENT = Decimal("0.01")
+
+
+class GoalVersionConflictError(ValueError):
+    pass
 
 
 def months_between(start: date, end: date) -> int:
@@ -123,6 +128,51 @@ async def create_goal(
     db.add(goal)
     await db.flush()
     await save_goal_version(db, goal)
+    return goal
+
+
+async def update_goal(
+    db: AsyncSession,
+    user: User,
+    goal: Goal,
+    payload: GoalUpdate,
+    correlation_id: str | None,
+) -> Goal:
+    if payload.version != goal.version:
+        raise GoalVersionConflictError(
+            "A meta foi alterada em outra sessão. Atualize a página e tente novamente."
+        )
+    if payload.target_date <= date.today():
+        raise ValueError("A data da meta precisa estar no futuro.")
+    if payload.current_amount > payload.target_amount:
+        raise ValueError("O valor atual não pode ultrapassar o valor da meta.")
+    before = snapshot(goal)
+    goal.name = payload.name
+    goal.target_amount = payload.target_amount
+    goal.current_amount = payload.current_amount
+    goal.target_date = payload.target_date
+    goal.monthly_contribution = payload.monthly_contribution
+    goal.priority = payload.priority
+    goal.status = (
+        GoalStatus.COMPLETED
+        if goal.current_amount >= goal.target_amount
+        else GoalStatus.ACTIVE
+    )
+    goal.version += 1
+    await save_goal_version(db, goal)
+    await record_audit_event(
+        db,
+        user_id=user.id,
+        action="goal.updated",
+        target_type="goal",
+        target_id=goal.id,
+        correlation_id=correlation_id,
+        safe_metadata={
+            "before_version": str(payload.version),
+            "after_version": str(goal.version),
+            "before": json.dumps(before, separators=(",", ":"), sort_keys=True),
+        },
+    )
     return goal
 
 

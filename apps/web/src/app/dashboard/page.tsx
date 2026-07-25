@@ -26,6 +26,7 @@ import { redirect } from "next/navigation";
 import { Brand } from "@/components/brand";
 import { BankConnect } from "@/components/bank-connect";
 import { AssistantPanel } from "@/components/assistant-panel";
+import { GoalManager } from "@/components/goal-manager";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -232,6 +233,10 @@ type Goal = {
   name: string;
   target_amount: string;
   current_amount: string;
+  target_date: string;
+  monthly_contribution: string;
+  priority: number;
+  version: number;
   progress_percent: string;
   pace_status: string;
 };
@@ -704,6 +709,7 @@ export default async function DashboardPage({
                         style={{ width: `${Math.min(100, Number(goal.progress_percent))}%` }}
                       />
                     </div>
+                    <GoalManager goal={goal} profileId={profile} />
                   </div>
                 ))}
                 {debts.map((debt) => (

@@ -1,5 +1,7 @@
 "use server";
 
+import { randomUUID } from "node:crypto";
+
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
@@ -264,6 +266,89 @@ export async function createGoalAction(formData: FormData) {
     redirect(dashboardUrl(profileId, "error", message));
   }
   redirect(dashboardUrl(profileId, "success", "Meta criada com premissas explícitas."));
+}
+
+export async function updateGoalAction(formData: FormData) {
+  const profileId = String(formData.get("profile_id") ?? "");
+  const goalId = String(formData.get("goal_id") ?? "");
+  try {
+    await serverApi(`/goals/${goalId}`, {
+      method: "PUT",
+      body: JSON.stringify({
+        name: String(formData.get("name") ?? ""),
+        target_amount: decimalValue(formData.get("target_amount")),
+        current_amount: decimalValue(formData.get("current_amount")),
+        target_date: String(formData.get("target_date") ?? ""),
+        monthly_contribution: decimalValue(formData.get("monthly_contribution")),
+        priority: Number(formData.get("priority") ?? 100),
+        version: Number(formData.get("version")),
+      }),
+    });
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Não foi possível atualizar a meta.";
+    redirect(dashboardUrl(profileId, "error", message));
+  }
+  redirect(dashboardUrl(profileId, "success", "Meta atualizada."));
+}
+
+export type GoalSimulationState = {
+  scenarios: {
+    name: string;
+    monthly_contribution: string;
+    target_date: string;
+    months_to_target: number | null;
+    projected_amount_at_target: string;
+    reaches_target: boolean;
+  }[];
+  pendingActionId: string | null;
+  error: string | null;
+};
+
+export async function simulateGoalAction(
+  _previousState: GoalSimulationState,
+  formData: FormData,
+): Promise<GoalSimulationState> {
+  const goalId = String(formData.get("goal_id") ?? "");
+  try {
+    const response = await serverApi<{
+      scenarios: GoalSimulationState["scenarios"];
+      pending_action: { id: string };
+    }>(`/goals/${goalId}/scenarios`, {
+      method: "POST",
+      body: JSON.stringify({
+        monthly_contribution: decimalValue(formData.get("monthly_contribution")),
+        target_date: String(formData.get("target_date") ?? ""),
+        idempotency_key: `goal-scenario-${randomUUID()}`,
+      }),
+    });
+    return {
+      scenarios: response.scenarios,
+      pendingActionId: response.pending_action.id,
+      error: null,
+    };
+  } catch (error) {
+    return {
+      scenarios: [],
+      pendingActionId: null,
+      error: error instanceof Error ? error.message : "Não foi possível simular a meta.",
+    };
+  }
+}
+
+export async function confirmGoalSimulationAction(formData: FormData) {
+  const profileId = String(formData.get("profile_id") ?? "");
+  const actionId = String(formData.get("action_id") ?? "");
+  try {
+    await serverApi(`/pending-actions/${actionId}/confirm`, { method: "POST" });
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Não foi possível aplicar a simulação.";
+    redirect(dashboardUrl(profileId, "error", message));
+  }
+  redirect(
+    dashboardUrl(profileId, "success", "Cenário aplicado ao planejamento da meta."),
+  );
 }
 
 export async function createDebtAction(formData: FormData) {

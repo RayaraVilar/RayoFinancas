@@ -653,6 +653,39 @@ async def test_goal_scenario_only_mutates_after_structured_confirmation() -> Non
         assert confirmed.json()["monthly_contribution"] == "900.00"
         assert confirmed.json()["version"] == repeated.json()["version"] == 2
 
+        edited = await client.put(
+            f"/api/v1/goals/{goal_id}",
+            json={
+                "name": "Reserva ampliada",
+                "target_amount": "15000.00",
+                "current_amount": "2500.00",
+                "target_date": "2028-01-24",
+                "monthly_contribution": "1000.00",
+                "priority": 50,
+                "version": 2,
+            },
+            headers=headers,
+        )
+        assert edited.status_code == 200
+        assert edited.json()["name"] == "Reserva ampliada"
+        assert edited.json()["target_amount"] == "15000.00"
+        assert edited.json()["version"] == 3
+
+        stale_edit = await client.put(
+            f"/api/v1/goals/{goal_id}",
+            json={
+                "name": "Versão antiga",
+                "target_amount": "14000.00",
+                "current_amount": "2500.00",
+                "target_date": "2028-01-24",
+                "monthly_contribution": "950.00",
+                "priority": 50,
+                "version": 2,
+            },
+            headers=headers,
+        )
+        assert stale_edit.status_code == 409
+
 
 async def test_manual_transactions_categories_totals_and_cursor() -> None:
     client, _, csrf_token = await authenticated_client("ledger@example.com")

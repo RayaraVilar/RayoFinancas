@@ -11,8 +11,10 @@ from app.modules.goals.schemas import (
     GoalResponse,
     GoalScenarioRequest,
     GoalScenarioResponse,
+    GoalUpdate,
 )
 from app.modules.goals.service import (
+    GoalVersionConflictError,
     add_contribution,
     confirm_pending_action,
     create_goal,
@@ -21,6 +23,7 @@ from app.modules.goals.service import (
     goal_response,
     list_goals,
     propose_goal_scenarios,
+    update_goal,
 )
 from app.modules.identity.dependencies import CsrfScope, CurrentScope, DatabaseSession
 from app.modules.identity.service import get_owned_profile
@@ -62,6 +65,42 @@ async def post_goal(
     try:
         goal = await create_goal(db, scope.user, profile, payload)
         await db.commit()
+    except ValueError as exc:
+        await db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail=str(exc),
+        ) from exc
+    return goal_response(goal)
+
+
+@router.put(
+    "/goals/{goal_id}",
+    response_model=GoalResponse,
+    tags=["goals"],
+)
+async def put_goal(
+    request: Request,
+    goal_id: UUID,
+    payload: GoalUpdate,
+    db: DatabaseSession,
+    scope: CsrfScope,
+) -> GoalResponse:
+    goal = await get_owned_goal(db, scope.user.id, goal_id)
+    if goal is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Meta não encontrada.")
+    try:
+        goal = await update_goal(
+            db,
+            scope.user,
+            goal,
+            payload,
+            request.headers.get("x-request-id"),
+        )
+        await db.commit()
+    except GoalVersionConflictError as exc:
+        await db.rollback()
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
     except ValueError as exc:
         await db.rollback()
         raise HTTPException(

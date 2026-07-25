@@ -18,6 +18,10 @@ class GoalCreate(BaseModel):
     priority: int = Field(default=100, ge=1, le=1000)
 
 
+class GoalUpdate(GoalCreate):
+    version: int = Field(ge=1)
+
+
 class GoalResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
