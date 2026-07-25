@@ -13,6 +13,7 @@ def test_render_blueprint_wires_required_services_without_secrets() -> None:
     assert services["rayo-web"]["rootDir"] == "apps/web"
     assert services["rayo-bank-worker"]["type"] == "worker"
     assert services["rayo-redis"]["type"] == "keyvalue"
+    assert "dockerCommand" not in services["rayo-api"]
     assert services["rayo-api"]["preDeployCommand"] == "alembic upgrade head"
     assert services["rayo-api"]["healthCheckPath"] == "/api/v1/ready"
     assert services["rayo-api"]["autoDeployTrigger"] == "off"
