@@ -1,0 +1,18 @@
+{
+  "name": "rayo-financas",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev:web": "npm --prefix apps/web run dev",
+    "build:web": "npm --prefix apps/web run build",
+    "lint:web": "npm --prefix apps/web run lint",
+    "typecheck:web": "npm --prefix apps/web run typecheck",
+    "test:api": "python -m pytest apps/api",
+    "lint:api": "python -m ruff check apps/api",
+    "format:api": "python -m ruff format --check apps/api"
+  },
+  "engines": {
+    "node": ">=20.9.0",
+    "npm": ">=10.0.0"
+  }
+}

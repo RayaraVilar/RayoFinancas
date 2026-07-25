@@ -1,0 +1,1 @@
+"""Rayo Finanças API."""

@@ -1,0 +1,130 @@
+name: rayo-financas
+
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: rayo
+      POSTGRES_USER: rayo
+      POSTGRES_PASSWORD: local-development-only
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U rayo -d rayo"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  redis:
+    image: redis:8-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  api:
+    build:
+      context: ./apps/api
+    command:
+      [
+        "sh",
+        "-c",
+        "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --no-access-log",
+      ]
+    environment:
+      RAYO_ENVIRONMENT: development
+      RAYO_DATABASE_URL: postgresql+asyncpg://rayo:local-development-only@db:5432/rayo
+      RAYO_SECRET_KEY: local-development-secret-change-before-shared-use-2026
+      RAYO_FRONTEND_URL: http://localhost:3000
+      RAYO_GOOGLE_REDIRECT_URI: http://localhost:8000/api/v1/auth/google/callback
+      RAYO_GOOGLE_CLIENT_ID: ${RAYO_GOOGLE_CLIENT_ID:-}
+      RAYO_GOOGLE_CLIENT_SECRET: ${RAYO_GOOGLE_CLIENT_SECRET:-}
+      RAYO_PLUGGY_ENABLED: ${RAYO_PLUGGY_ENABLED:-false}
+      RAYO_PLUGGY_CLIENT_ID: ${RAYO_PLUGGY_CLIENT_ID:-}
+      RAYO_PLUGGY_CLIENT_SECRET: ${RAYO_PLUGGY_CLIENT_SECRET:-}
+      RAYO_PLUGGY_WEBHOOK_SECRET: ${RAYO_PLUGGY_WEBHOOK_SECRET:-}
+      RAYO_PLUGGY_API_URL: ${RAYO_PLUGGY_API_URL:-https://api.pluggy.ai}
+      RAYO_OPENAI_API_KEY: ${RAYO_OPENAI_API_KEY:-}
+      RAYO_OPENAI_MODEL: ${RAYO_OPENAI_MODEL:-gpt-5.6-sol}
+      RAYO_REDIS_URL: redis://redis:6379/0
+      RAYO_PAYMENT_INITIATION_ENABLED: ${RAYO_PAYMENT_INITIATION_ENABLED:-false}
+      RAYO_PAYMENT_KILL_SWITCH: ${RAYO_PAYMENT_KILL_SWITCH:-true}
+      RAYO_PAYMENT_PROVIDER: ${RAYO_PAYMENT_PROVIDER:-}
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/v1/ready')",
+        ]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+  worker:
+    build:
+      context: ./apps/api
+    command: ["dramatiq", "app.modules.banking.tasks", "--processes", "1", "--threads", "4"]
+    environment:
+      RAYO_ENVIRONMENT: development
+      RAYO_DATABASE_URL: postgresql+asyncpg://rayo:local-development-only@db:5432/rayo
+      RAYO_SECRET_KEY: local-development-secret-change-before-shared-use-2026
+      RAYO_PLUGGY_ENABLED: ${RAYO_PLUGGY_ENABLED:-false}
+      RAYO_PLUGGY_CLIENT_ID: ${RAYO_PLUGGY_CLIENT_ID:-}
+      RAYO_PLUGGY_CLIENT_SECRET: ${RAYO_PLUGGY_CLIENT_SECRET:-}
+      RAYO_PLUGGY_WEBHOOK_SECRET: ${RAYO_PLUGGY_WEBHOOK_SECRET:-}
+      RAYO_PLUGGY_API_URL: ${RAYO_PLUGGY_API_URL:-https://api.pluggy.ai}
+      RAYO_REDIS_URL: redis://redis:6379/0
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ./apps/web
+    environment:
+      INTERNAL_API_URL: http://api:8000
+      PUBLIC_API_URL: http://localhost:8000
+    ports:
+      - "3000:3000"
+    depends_on:
+      api:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:3000').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
